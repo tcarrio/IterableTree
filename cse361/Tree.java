@@ -46,35 +46,38 @@ public class Tree<E extends String> implements Iterable<E> {
             Node root = new Node(strSpec.substring(0,index));
             Node currNode = root;
 
-            while(index < spec.length ){
-                if(spec[index] == '(') {
-                /* First: Construct node from current string as parent */
-                    // set stack top node content to substring(start,end)
-                    String tmpContent = strSpec.substring(nodeIndex, index);
-                    // pop node from stack to tempNode
-                    if (index - nodeIndex > 1) {
-                        currNode.setContent(tmpContent);
-                    }
-                    System.out.printf("%s\n", tmpContent);
-                /* Next: Prepare new child node */
-                    currNode.makeParentOf(new Node());
-                    currNode = (Node) currNode.getChildren().getLast();
-                    // add new node to stack
-                    // set current index + 1 to read string
-                    nodeIndex = index + 1;
-                    // ie. get prepared to read characters for setting content
-
-                } else if(spec[index] == ')'){
-                    if(spec[index-1]!=')') {
+            try {
+                while (index < spec.length) {
+                    if (spec[index] == '(') {
+                    /* First: Construct node from current string as parent */
                         // set stack top node content to substring(start,end)
                         String tmpContent = strSpec.substring(nodeIndex, index);
-                        System.out.printf("%s\n", tmpContent);
-                        currNode.setContent(tmpContent);
+                        if (index - nodeIndex > 0) {
+                            currNode.setContent(tmpContent);
+                        }
+                    /* Next: Prepare new child node */
+                        currNode.makeParentOf(new Node());
+                        currNode = (Node) currNode.getChildren().getLast();
+                        // add new node to stack
+                        // set current index + 1 to read string
+                        nodeIndex = index + 1;
+                        // ie. get prepared to read characters for setting content
+
+                    } else if (spec[index] == ')') {
+                        if (spec[index - 1] != ')') {
+                            // set stack top node content to substring(start,end)
+                            String tmpContent = strSpec.substring(nodeIndex, index);
+                            currNode.setContent(tmpContent);
+                        }
+                        currNode = currNode.getParent();
+                        nodeIndex = index + 1;
                     }
-                    currNode = currNode.getParent();
-                    nodeIndex = index+1;
+                    index++;
                 }
-                index++;
+            } catch (NullPointerException nfe){
+                // Tried to access a node that doesn't exist
+                // Invalid tree architecture
+                throw new InvalidFormatException("Learn the tree spec!");
             }
             return root;
         } else
@@ -90,15 +93,6 @@ public class Tree<E extends String> implements Iterable<E> {
 
     }
 
-	private boolean isEmptyRange(char[] w, int s, int e){
-	    boolean isEmpty = false;
-	    for(char c : w){
-	        if(c != ' ')
-	            isEmpty = true;
-        }
-        return isEmpty;
-    }
-
 	public static void main(String[] args){
 		Tree<String> testTree = new Tree<>("(tom(chase)(chase(john)(kyle))");
 
@@ -112,11 +106,8 @@ public class Tree<E extends String> implements Iterable<E> {
         return root;
     }
 
-    public void setRoot(Node root) {
-        this.root = root;
-    }
-
 	public void forEach(Consumer<? super E> action) {
+	    //unimplemented
 		System.out.println("Not implemented, sorry guy.");
 	}
 	

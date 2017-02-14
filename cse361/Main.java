@@ -10,6 +10,7 @@ public class Main {
         Vector<String>  treeCollection = new Vector<String>();
         treeCollection.addElement( "(A (B (C ) (D) ) (E) (F))");
         treeCollection.addElement( "(Any Thing Goes (Big Child (Level 21 (Level 211) (Level 212)) (Level 22)(Level 23 (Level 234 )))(Cxihild Node)( Dooble Words))");
+        treeCollection.addElement("(Hi)(This)(Is)(Not)(A(Tree))");
 
         // Running Tests
         Iterator<String>   tcIter = treeCollection.iterator();
