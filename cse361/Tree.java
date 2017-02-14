@@ -23,22 +23,27 @@ public class Tree<E extends String> implements Iterable<E> {
 
 		while(index < spec.length - 1 ){
 			System.out.printf("%d : %c\n",index,spec[index]);
-            if(spec[index] == '(' && !nodeStack.empty()){
+            if(spec[index] == '(') {
                 /* First: Construct node from current string as parent */
                 // set stack top node content to substring(start,end)
-                String tmpContent = strSpec.substring(nodeIndex,index).trim();
+                String tmpContent = strSpec.substring(nodeIndex, index).trim();
                 // pop node from stack to tempNode
                 Node tmpNode = nodeStack.peek();
                 tmpNode.setContent(tmpContent);
-                System.out.printf("%s\n",tmpContent);
+                System.out.printf("%s\n", tmpContent);
                 /* Next: Prepare new child node */
                 // add new node to stack
                 nodeStack.add(new Node());
                 // set current index + 1 to read string
-                nodeIndex = index+1;
+                nodeIndex = index + 1;
                 // ie. get prepared to read characters for setting content
 
-            } else if(spec[index] == ')' && index>0 && spec[index-1]!=')'){
+            } else if(spec[index] == ')' && spec[index-1] == ')') {
+                // iterate down the stack, we've gone down a level
+                Node tmpNode = nodeStack.pop();
+                nodeStack.peek().addChild(tmpNode);
+
+            } else if(spec[index] == ')'){
                 // set stack top node content to substring(start,end)
                 String tmpContent = strSpec.substring(nodeIndex,index).trim();
                 System.out.printf("%s\n",tmpContent);
