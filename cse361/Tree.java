@@ -15,46 +15,45 @@ public class Tree<E extends String> implements Iterable<E> {
 		char[] spec = strSpec.trim().toCharArray();
 		System.out.println(strSpec);
 
-		// setup stack of nodes to manage tree levels during parsing
-		Stack<Node> nodeStack = new Stack<>();
-		nodeStack.add(new Node());
-        int index = 1;
-		int nodeIndex = 1;
+		// screw stacks we're going full tree here
+        int firstOpen = strSpec.indexOf('(',1);
+        int firstClose= strSpec.indexOf(')',1);
+        int index = (firstOpen!=-1 && firstOpen<firstClose)?firstOpen:firstClose;
+		int nodeIndex = index;
+		Node root = new Node(strSpec.substring(1,index));
+        Node currNode = new Node();
+		root.makeParentOf(currNode);
+
 
 		while(index < spec.length - 1 ){
-			System.out.printf("%d : %c\n",index,spec[index]);
+			//System.out.printf("%d : %c\n",index,spec[index]);
+            System.out.printf("Node content:%s\n",currNode.getContent());
             if(spec[index] == '(') {
                 /* First: Construct node from current string as parent */
                 // set stack top node content to substring(start,end)
-                String tmpContent = strSpec.substring(nodeIndex, index).trim();
+                String tmpContent = strSpec.substring(nodeIndex, index);
                 // pop node from stack to tempNode
-                Node tmpNode = nodeStack.peek();
-                tmpNode.setContent(tmpContent);
+                if(index-nodeIndex > 1){
+                    currNode.setContent(tmpContent);
+                }
                 System.out.printf("%s\n", tmpContent);
                 /* Next: Prepare new child node */
+                currNode.makeParentOf(new Node());
+                currNode = (Node) currNode.getChildren().getLast();
                 // add new node to stack
-                nodeStack.add(new Node());
                 // set current index + 1 to read string
                 nodeIndex = index + 1;
                 // ie. get prepared to read characters for setting content
 
             } else if(spec[index] == ')' && spec[index-1] == ')') {
-                // iterate down the stack, we've gone down a level
-                Node tmpNode = nodeStack.pop();
-                nodeStack.peek().addChild(tmpNode);
+                currNode = currNode.getParent();
 
             } else if(spec[index] == ')'){
                 // set stack top node content to substring(start,end)
-                String tmpContent = strSpec.substring(nodeIndex,index).trim();
+                String tmpContent = strSpec.substring(nodeIndex,index);
                 System.out.printf("%s\n",tmpContent);
-                // pop node from stack to tempNode
-                Node tmpNode = new Node();
-                if(nodeStack.peek().getContent().equals("")) {
-                    tmpNode = nodeStack.pop();
-                    tmpNode.setContent(tmpContent);
-                }
-                // add tempNode as child to stack top node
-                nodeStack.peek().addChild(tmpNode);
+                currNode.setContent(tmpContent);
+                currNode = currNode.getParent();
                 nodeIndex = index+1;
 
             } else {
@@ -63,7 +62,7 @@ public class Tree<E extends String> implements Iterable<E> {
 
             index++;
 		}
-		return nodeStack.pop();
+		return root;
 	}
 
 	private String cleanTreeSpec(String s){
@@ -169,6 +168,11 @@ public class Tree<E extends String> implements Iterable<E> {
 
         public void setContent(E c){
             this.content = c;
+        }
+
+        public void makeParentOf(Node child){
+            this.addChild(child);
+            child.setParent(this);
         }
 
         public void setParent(Node n) {
