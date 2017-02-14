@@ -1,68 +1,84 @@
 package cse361;
+import com.sun.media.sound.InvalidFormatException;
+
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Tree<E extends String> implements Iterable<E> {
 
 	private Node root;
 
 	public Tree(E treeSpec){
-		root = processTreeSpec((E) cleanTreeSpec(treeSpec.trim()));
+		try {
+            root = processTreeSpec((E) cleanTreeSpec(treeSpec.trim()));
+        } catch(InvalidFormatException ife){
+		    System.out.println("The tree given was an incorrect format!");
+        }
 	}
 
-	private Node processTreeSpec(E strSpec){
-	    // character array for while loop iteration
-		char[] spec = strSpec.trim().toCharArray();
-		System.out.println(strSpec);
+	private Node processTreeSpec(E strSpec) throws InvalidFormatException {
 
-		// screw stacks we're going full tree here
-        int firstOpen = strSpec.indexOf('(',1);
-        int firstClose= strSpec.indexOf(')',1);
-        int index = (firstOpen!=-1 && firstOpen<firstClose)?firstOpen:firstClose;
-		int nodeIndex = index;
-		Node root = new Node(strSpec.substring(1,index));
-        Node currNode = new Node();
-		root.makeParentOf(currNode);
+        if(strSpec.length() == 0)
+            throw new InvalidFormatException("Learn the tree spec!");
 
+        String regexp = "\\([\\w\\s]*[\\w\\s\\(\\)]*\\)";
+        Pattern pattern = Pattern.compile(regexp);
+        Matcher matcher = pattern.matcher(strSpec);
 
-		while(index < spec.length - 1 ){
-			//System.out.printf("%d : %c\n",index,spec[index]);
-            System.out.printf("Node content:%s\n",currNode.getContent());
-            if(spec[index] == '(') {
+	    if (matcher.find()) {
+            System.out.println("tree specification: '" + strSpec + "'");
+            System.out.println("Found valid tree specification: '" + matcher.group() + "'");
+            strSpec = (E)matcher.group();
+            System.out.println(matcher.start() + ":" + matcher.end());
+            strSpec = (E)strSpec.substring(matcher.start() + 1, matcher.end() - 1);
+
+            // character array for while loop iteration
+            char[] spec = strSpec.trim().toCharArray();
+            System.out.println(strSpec);
+
+            // screw stacks we're going full tree here
+            int firstOpen = strSpec.indexOf('(',1);
+            int firstClose= strSpec.indexOf(')',1);
+            int index = (firstOpen!=-1 && firstOpen<firstClose)?firstOpen:firstClose;
+            int nodeIndex = index;
+            Node root = new Node(strSpec.substring(0,index));
+            Node currNode = root;
+
+            while(index < spec.length ){
+                if(spec[index] == '(') {
                 /* First: Construct node from current string as parent */
-                // set stack top node content to substring(start,end)
-                String tmpContent = strSpec.substring(nodeIndex, index);
-                // pop node from stack to tempNode
-                if(index-nodeIndex > 1){
-                    currNode.setContent(tmpContent);
-                }
-                System.out.printf("%s\n", tmpContent);
+                    // set stack top node content to substring(start,end)
+                    String tmpContent = strSpec.substring(nodeIndex, index);
+                    // pop node from stack to tempNode
+                    if (index - nodeIndex > 1) {
+                        currNode.setContent(tmpContent);
+                    }
+                    System.out.printf("%s\n", tmpContent);
                 /* Next: Prepare new child node */
-                currNode.makeParentOf(new Node());
-                currNode = (Node) currNode.getChildren().getLast();
-                // add new node to stack
-                // set current index + 1 to read string
-                nodeIndex = index + 1;
-                // ie. get prepared to read characters for setting content
+                    currNode.makeParentOf(new Node());
+                    currNode = (Node) currNode.getChildren().getLast();
+                    // add new node to stack
+                    // set current index + 1 to read string
+                    nodeIndex = index + 1;
+                    // ie. get prepared to read characters for setting content
 
-            } else if(spec[index] == ')' && spec[index-1] == ')') {
-                currNode = currNode.getParent();
-
-            } else if(spec[index] == ')'){
-                // set stack top node content to substring(start,end)
-                String tmpContent = strSpec.substring(nodeIndex,index);
-                System.out.printf("%s\n",tmpContent);
-                currNode.setContent(tmpContent);
-                currNode = currNode.getParent();
-                nodeIndex = index+1;
-
-            } else {
-                //nodeIndex = index+1;
+                } else if(spec[index] == ')'){
+                    if(spec[index-1]!=')') {
+                        // set stack top node content to substring(start,end)
+                        String tmpContent = strSpec.substring(nodeIndex, index);
+                        System.out.printf("%s\n", tmpContent);
+                        currNode.setContent(tmpContent);
+                    }
+                    currNode = currNode.getParent();
+                    nodeIndex = index+1;
+                }
+                index++;
             }
-
-            index++;
-		}
-		return root;
+            return root;
+        } else
+            throw new InvalidFormatException("Learn the tree spec!");
 	}
 
 	private String cleanTreeSpec(String s){
@@ -122,7 +138,6 @@ public class Tree<E extends String> implements Iterable<E> {
 
 		private void preOrderTraversal(Node n, LinkedList<T> ll){
 		    ll.add((T)n.getContent());
-		    System.out.printf("Current node: (%s)\n",(T)n.getContent());
 		    for(Object child : n.getChildren()){
 		        preOrderTraversal((Node)child, ll);
             }
@@ -194,8 +209,5 @@ public class Tree<E extends String> implements Iterable<E> {
         public LinkedList<Node> getChildren(){
             return this.children;
         }
-
-        //visit nodes?
-
     }
 }
